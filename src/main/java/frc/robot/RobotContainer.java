@@ -1,0 +1,286 @@
+package frc.robot;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
+import java.util.Map;
+
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.SpindexerConstants;
+
+import frc.robot.commands.DriveCommand;
+import frc.robot.commands.PreloadShoot;
+import frc.robot.commands.LLDriveToTarget;
+
+import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.ShooterSubsystem.ShooterMode;
+import frc.robot.subsystems.FeederSubsystem;
+import frc.robot.subsystems.SpindexerSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.IntakeFlipperSubsystem;
+import frc.robot.subsystems.LimelightSubsystem;
+
+public class RobotContainer {
+
+  // ---------------- SUBSYSTEMS ----------------
+  public static final DriveSubsystem driveSubsystem = new DriveSubsystem();
+  public static final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  public static final FeederSubsystem feederSubsystem = new FeederSubsystem();
+  public static final SpindexerSubsystem spindexerSubsystem = new SpindexerSubsystem();
+
+  public static final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  public static final IntakeFlipperSubsystem intakeFlipperSubsystem = new IntakeFlipperSubsystem();
+
+  // Limelight
+  public static final LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
+
+  // ---------------- JOYSTICKS ----------------
+  private final CommandJoystick driveJoystick =
+      new CommandJoystick(OperatorConstants.kDriveJoystickPort);
+
+  private final CommandJoystick turnJoystick =
+      new CommandJoystick(OperatorConstants.kTurnJoystickPort);
+
+  private final Joystick Leftjoy  = new Joystick(OperatorConstants.kDriveJoystickPort);
+  private final Joystick Rightjoy = new Joystick(OperatorConstants.kTurnJoystickPort);
+
+  // ---------------- XBOX CONTROLLER ----------------
+  @SuppressWarnings("unused")
+  private final XboxController Controller1 = new XboxController(Constants.XBOXCONTROLLER_ID);
+  private final CommandXboxController ccontroller = new CommandXboxController(Constants.XBOXCONTROLLER_ID);
+
+  // Face buttons
+  Trigger XboxButton1 = ccontroller.button(1);  // A
+  Trigger XboxButton2 = ccontroller.button(2);  // B
+  Trigger XboxButton3 = ccontroller.button(3);  // X
+  Trigger XboxButton4 = ccontroller.button(4);  // Y
+
+  // Bumpers
+  Trigger XboxButton5 = ccontroller.button(5);  // LB
+  Trigger XboxButton6 = ccontroller.button(6);  // RB
+
+  // Stick buttons
+  Trigger leftStickBtn  = ccontroller.leftStick();
+  Trigger rightStickBtn = ccontroller.rightStick();
+
+  // Start / Back
+  Trigger startBtn = ccontroller.start();
+  Trigger backBtn  = ccontroller.back();
+
+  // D-Pad (POV)
+  Trigger povUp    = ccontroller.povUp();
+  Trigger povRight = ccontroller.povRight();
+  Trigger povDown  = ccontroller.povDown();
+  Trigger povLeft  = ccontroller.povLeft();
+
+  // ---------------- OTHER BUTTONS ----------------
+  public JoystickButton button12 = new JoystickButton(Leftjoy, Constants.BUTTON_12_ID);
+  public JoystickButton rightButton11 = new JoystickButton(Rightjoy, Constants.BUTTON_11_ID);
+
+  // Flight stick trigger (Left joystick button 1)
+  public JoystickButton driveTrigger = new JoystickButton(Leftjoy, Constants.BUTTON_1_ID);
+
+  // (Optional) keep this if you were using it before
+  public JoystickButton lTrigger = new JoystickButton(Leftjoy, Constants.BUTTON_1_ID);
+
+  // ---------------- AUTO ----------------
+  private SendableChooser<Command> autoChooser = new SendableChooser<>();
+
+  public RobotContainer() {
+
+    // Register NamedCommands for PathPlanner
+    NamedCommands.registerCommand(
+        "PreloadShootClose",
+        PreloadShoot.close(shooterSubsystem, feederSubsystem, spindexerSubsystem));
+
+    NamedCommands.registerCommand(
+        "PreloadShootMedium",
+        PreloadShoot.medium(shooterSubsystem, feederSubsystem, spindexerSubsystem));
+
+    NamedCommands.registerCommand(
+        "PreloadShootFar",
+        PreloadShoot.far(shooterSubsystem, feederSubsystem, spindexerSubsystem));
+
+    // ---------------- NEW AUTON INTAKE / FLIPPER COMMANDS ----------------
+
+    // Flip intake out once
+    NamedCommands.registerCommand(
+        "FlipIntakeOut",
+        Commands.runOnce(
+            () -> intakeFlipperSubsystem.moveToOutPosition(),
+            intakeFlipperSubsystem
+        )
+    );
+
+    // Flip intake in once
+    NamedCommands.registerCommand(
+        "FlipIntakeIn",
+        Commands.runOnce(
+            () -> intakeFlipperSubsystem.moveToInPosition(),
+            intakeFlipperSubsystem
+        )
+    );
+
+    // Run intake continuously until event ends
+   NamedCommands.registerCommand(
+    "AutonIntake",
+    Commands.run(
+        () -> intakeSubsystem.intakeIn(),
+        intakeSubsystem
+    ).withTimeout(5.0)
+     .finallyDo(interrupted -> intakeSubsystem.stop())
+);
+
+    // Timed intake command (recommended for PathPlanner markers)
+    NamedCommands.registerCommand(
+        "AutonIntake2Sec",
+        Commands.run(
+            () -> intakeSubsystem.intakeIn(),
+            intakeSubsystem
+        ).withTimeout(2.0)
+         .finallyDo(interrupted -> intakeSubsystem.stop())
+    );
+
+    // Intake out / spit out
+    NamedCommands.registerCommand(
+        "AutonIntakeOut",
+        Commands.run(
+            () -> intakeSubsystem.intakeOut(),
+            intakeSubsystem
+        ).withTimeout(1.0)
+         .finallyDo(interrupted -> intakeSubsystem.stop())
+    );
+
+    // Flip intake out, then intake for 2 seconds
+    NamedCommands.registerCommand(
+        "FlipOutAndIntake",
+        Commands.sequence(
+            Commands.runOnce(
+                () -> intakeFlipperSubsystem.moveToOutPosition(),
+                intakeFlipperSubsystem
+            ),
+            Commands.waitSeconds(0.25),
+            Commands.run(
+                () -> intakeSubsystem.intakeIn(),
+                intakeSubsystem
+            ).withTimeout(2.0)
+             .finallyDo(interrupted -> intakeSubsystem.stop())
+        )
+    );
+
+    configureBindings();
+
+    // Build auto chooser from PathPlanner / AutoBuilder
+    autoChooser = AutoBuilder.buildAutoChooser();
+    Shuffleboard.getTab("Driver").add("Auto Chooser", autoChooser);
+    SmartDashboard.putData("Auto Choices", autoChooser);
+
+    // Shuffleboard flipper position
+    Shuffleboard.getTab("Driver")
+        .addNumber("Intake Flipper Pos (rot)", () -> intakeFlipperSubsystem.getPosition());
+
+    // Limelight values on Shuffleboard
+    Shuffleboard.getTab("Driver").addBoolean("LL Has Target", () -> limelightSubsystem.hasTarget());
+    Shuffleboard.getTab("Driver").addNumber("LL tx", () -> limelightSubsystem.getTX());
+    Shuffleboard.getTab("Driver").addNumber("LL ta", () -> limelightSubsystem.getTA());
+
+    // ---------------- LIVE FIELD WIDGET ----------------
+    Shuffleboard.getTab("Driver")
+        .add("Robot Field", driveSubsystem.getField())
+        .withWidget(BuiltInWidgets.kField)
+        .withPosition(6, 0)
+        .withSize(6, 4)
+        .withProperties(Map.of(
+            "Robot width", 0.9,
+            "Robot length", 0.9
+        ));
+  }
+
+  private void configureBindings() {
+
+    // ---------------- DRIVE ----------------
+    button12.onTrue(driveSubsystem.toggleFieldCentric());
+
+    // Keep your original reset encoders on left trigger
+    lTrigger.whileTrue(new InstantCommand(() -> driveSubsystem.resetEncoders()));
+
+    rightButton11.onTrue(new InstantCommand(() -> driveSubsystem.zeroHeading()));
+
+    // ✅ LIMELIGHT DRIVE-TO-TARGET while holding flight stick trigger
+    driveTrigger.whileTrue(new LLDriveToTarget(driveSubsystem, limelightSubsystem));
+
+    // ---------------- SHOOTER PRESETS (D-PAD) ----------------
+    povDown.onTrue(new InstantCommand(() -> shooterSubsystem.setMode(ShooterMode.CLOSE)));
+    povRight.onTrue(new InstantCommand(() -> shooterSubsystem.setMode(ShooterMode.MEDIUM)));
+    povUp.onTrue(new InstantCommand(() -> shooterSubsystem.setMode(ShooterMode.FAR)));
+
+    // ---------------- FEEDER ----------------
+    XboxButton4.whileTrue(new RunCommand(() -> feederSubsystem.runForward(), feederSubsystem));
+    XboxButton4.onFalse(new InstantCommand(() -> feederSubsystem.stop(), feederSubsystem));
+
+    XboxButton2.whileTrue(new RunCommand(() -> feederSubsystem.runReverse(), feederSubsystem));
+    XboxButton2.onFalse(new InstantCommand(() -> feederSubsystem.stop(), feederSubsystem));
+
+    // ---------------- SHOOTER ----------------
+    XboxButton3.whileTrue(new RunCommand(() -> shooterSubsystem.runSelectedRPM(), shooterSubsystem));
+    XboxButton3.onFalse(new InstantCommand(() -> shooterSubsystem.stopShooter(), shooterSubsystem));
+
+    // ---------------- SPINDEXER ----------------
+    XboxButton2.whileTrue(new RunCommand(() -> spindexerSubsystem.runAtRPM(SpindexerConstants.kFeedRPM), spindexerSubsystem));
+    XboxButton2.onFalse(new InstantCommand(() -> spindexerSubsystem.stop(), spindexerSubsystem));
+
+    XboxButton4.whileTrue(new RunCommand(() -> spindexerSubsystem.runReverseRPM(), spindexerSubsystem));
+    XboxButton4.onFalse(new InstantCommand(() -> spindexerSubsystem.stop(), spindexerSubsystem));
+
+    // ---------------- INTAKE (ROLLER) ----------------
+    XboxButton1.whileTrue(new RunCommand(() -> intakeSubsystem.intakeIn(), intakeSubsystem));
+    XboxButton1.onFalse(new InstantCommand(() -> intakeSubsystem.stop(), intakeSubsystem));
+
+    povLeft.whileTrue(new RunCommand(() -> intakeSubsystem.intakeOut(), intakeSubsystem));
+    povLeft.onFalse(new InstantCommand(() -> intakeSubsystem.stop(), intakeSubsystem));
+
+    // ---------------- INTAKE FLIPPER ----------------
+    // Stick buttons: set positions
+    leftStickBtn.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToOutPosition(), intakeFlipperSubsystem));
+    rightStickBtn.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToInPosition(), intakeFlipperSubsystem));
+
+    // Start/Back: manual override while held
+    backBtn.whileTrue(new RunCommand(() -> intakeFlipperSubsystem.manualFlipOut(), intakeFlipperSubsystem));
+    backBtn.onFalse(new InstantCommand(() -> intakeFlipperSubsystem.stopManual(), intakeFlipperSubsystem));
+
+    startBtn.whileTrue(new RunCommand(() -> intakeFlipperSubsystem.manualFlipIn(), intakeFlipperSubsystem));
+    startBtn.onFalse(new InstantCommand(() -> intakeFlipperSubsystem.stopManual(), intakeFlipperSubsystem));
+
+    // ---------------- DEFAULT DRIVE ----------------
+    driveSubsystem.setDefaultCommand(
+        new DriveCommand(
+            driveSubsystem,
+            () -> -driveJoystick.getY(),
+            () -> -driveJoystick.getX(),
+            () -> -turnJoystick.getX()
+        )
+    );
+  }
+
+  public Command getAutonomousCommand() {
+    return autoChooser.getSelected();
+  }
+}
