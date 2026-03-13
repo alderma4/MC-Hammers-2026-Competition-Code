@@ -201,7 +201,7 @@ public final class Constants {
         public static final int kCurrentLimit = 40;
 
         public static final double kCloseRPM = 2760.0;
-        public static final double kMediumRPM = 3300.0;
+        public static final double kMediumRPM = 3250.0;
         public static final double kFarRPM = 3750.0;
 
         public static final double kP = 0.0003;
@@ -265,15 +265,15 @@ public final class Constants {
         public static final double kStage2GearRatio = 5.0;
         public static final double kTotalGearRatio = kStage1GearRatio * kStage2GearRatio;
 
-        public static final double kInPosition = -0.008333327248693;
-        public static final double kOutPosition = -0.56905072927475;
+        public static final double kInPosition = 0.59762167930603;
+        public static final double kOutPosition = -0.035714279860258;
 
         public static final double kP = 1.250;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
 
         public static final double kFlipInSpeed = 0.5;
-        public static final double kFlipOutSpeed = -0.5;
+        public static final double kFlipOutSpeed = -0.7;
     }
 
     private Constants() {}
