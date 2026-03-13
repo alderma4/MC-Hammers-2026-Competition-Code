@@ -1,41 +1,5 @@
-# This gitignore has been specially created by the WPILib team.
-# If you remove items from this file, intellisense might break.
 
-### C++ ###
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-### Java ###
+>>>>>>> d72278b45e0c340df3adb546800db220da94b2c0
 # Compiled class file
 *.class
 
@@ -59,6 +23,7 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+<<<<<<< HEAD
 
 ### Linux ###
 *~
@@ -185,3 +150,6 @@ compile_commands.json
 
 # Eclipse generated file for annotation processors
 .factorypath
+=======
+replay_pid*
+>>>>>>> d72278b45e0c340df3adb546800db220da94b2c0
