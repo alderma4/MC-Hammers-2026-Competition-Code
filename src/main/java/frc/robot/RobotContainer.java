@@ -119,7 +119,7 @@ public class RobotContainer {
         "PreloadShootFar",
         PreloadShoot.far(shooterSubsystem, feederSubsystem, spindexerSubsystem));
 
-    // ---------------- NEW AUTON INTAKE / FLIPPER COMMANDS ----------------
+    // ---------------- AUTON INTAKE / FLIPPER COMMANDS ----------------
 
     // Flip intake out once
     NamedCommands.registerCommand(
@@ -138,19 +138,18 @@ public class RobotContainer {
             intakeFlipperSubsystem
         )
     );
-    
 
-    // Run intake continuously until event ends
-   NamedCommands.registerCommand(
-    "AutonIntake",
-    Commands.run(
-        () -> intakeSubsystem.intakeIn(),
-        intakeSubsystem
-    ).withTimeout(5.0)
-     .finallyDo(interrupted -> intakeSubsystem.stop())
-);
+    // Run intake continuously until timeout
+    NamedCommands.registerCommand(
+        "AutonIntake",
+        Commands.run(
+            () -> intakeSubsystem.intakeIn(),
+            intakeSubsystem
+        ).withTimeout(5.0)
+         .finallyDo(interrupted -> intakeSubsystem.stop())
+    );
 
-    // Timed intake command (recommended for PathPlanner markers)
+    // Timed intake command
     NamedCommands.registerCommand(
         "AutonIntake2Sec",
         Commands.run(
@@ -186,6 +185,11 @@ public class RobotContainer {
              .finallyDo(interrupted -> intakeSubsystem.stop())
         )
     );
+
+    // IMPORTANT:
+    // Assume the flipper is physically fully IN when robot starts up.
+    intakeFlipperSubsystem.zeroAtInPosition();
+    intakeFlipperSubsystem.moveToInPosition();
 
     configureBindings();
 
@@ -225,7 +229,7 @@ public class RobotContainer {
 
     rightButton11.onTrue(new InstantCommand(() -> driveSubsystem.zeroHeading()));
 
-    // ✅ LIMELIGHT DRIVE-TO-TARGET while holding flight stick trigger
+    // LIMELIGHT DRIVE-TO-TARGET while holding flight stick trigger
     driveTrigger.whileTrue(new LLDriveToTarget(driveSubsystem, limelightSubsystem));
 
     // ---------------- SHOOTER PRESETS (D-PAD) ----------------

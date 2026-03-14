@@ -5,19 +5,38 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "FlipIntakeOut"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Blue Left to Neutral"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "AutonIntake"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": null
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "ReefLevel4"
+                  "pathName": "Blue Left Neutral to Line"
                 }
               }
             ]
@@ -26,7 +45,26 @@
         {
           "type": "named",
           "data": {
-            "name": "ScoreCoral"
+            "name": "FlipIntakeIn"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 7.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "PreloadShootMedium"
+                }
+              }
+            ]
           }
         },
         {
@@ -34,15 +72,46 @@
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "ReefLevel0"
+                  "pathName": "Left Shoot to Mid"
                 }
               },
               {
-                "type": "path",
+                "type": "named",
                 "data": {
-                  "pathName": null
+                  "name": "FlipIntakeOut"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Center Field to Shoot"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 5.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "PreloadShootMedium"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "FlipIntakeIn"
                 }
               }
             ]
@@ -51,57 +120,13 @@
         {
           "type": "named",
           "data": {
-            "name": "IntakeAndPosition"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": null
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "ReefLevel4"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "ScoreCoral"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": null
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "ReefLevel0"
-                }
-              }
-            ]
+            "name": "FlipIntakeOut"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "2025",
+  "folder": "Red 2026",
   "choreoAuto": false
 }

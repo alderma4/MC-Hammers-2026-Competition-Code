@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
-
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -9,7 +8,6 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.FeedbackSensor;
-
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -35,7 +33,8 @@ public class IntakeFlipperSubsystem extends SubsystemBase {
 
     // Convert motor rotations -> flipper OUTPUT rotations
     config.encoder.positionConversionFactor(1.0 / IntakeFlipperConstants.kTotalGearRatio);
-    config.encoder.velocityConversionFactor((1.0 / IntakeFlipperConstants.kTotalGearRatio) * (1.0 / 60.0));
+    config.encoder.velocityConversionFactor(
+        (1.0 / IntakeFlipperConstants.kTotalGearRatio) * (1.0 / 60.0));
 
     // Enable position closed-loop on the built-in NEO encoder
     config.closedLoop
@@ -48,11 +47,14 @@ public class IntakeFlipperSubsystem extends SubsystemBase {
     encoder = flipperMotor.getEncoder();
     pid = flipperMotor.getClosedLoopController();
 
-    // Start robot with flipper commanded to IN position
-    moveToInPosition();
+    // DO NOT command a position here.
+    // Relative encoders do not know true mechanism position on startup.
   }
 
-  // ---------------- SET POSITION CONTROL ----------------
+  /** Zero encoder when flipper is physically fully IN */
+  public void zeroAtInPosition() {
+    encoder.setPosition(0.0);
+  }
 
   /** Move to OUT (deployed) setpoint */
   public void moveToOutPosition() {
@@ -64,9 +66,6 @@ public class IntakeFlipperSubsystem extends SubsystemBase {
     pid.setReference(IntakeFlipperConstants.kInPosition, ControlType.kPosition);
   }
 
-  // ---------------- MANUAL OVERRIDE (OPEN LOOP) ----------------
-  // These are for Start/Back manual control.
-
   /** Manual OUT (deploy) while held */
   public void manualFlipOut() {
     flipperMotor.set(IntakeFlipperConstants.kFlipOutSpeed);
@@ -77,12 +76,12 @@ public class IntakeFlipperSubsystem extends SubsystemBase {
     flipperMotor.set(IntakeFlipperConstants.kFlipInSpeed);
   }
 
-  /** Stop manual movement (motor output 0) */
+  /** Stop manual movement */
   public void stopManual() {
     flipperMotor.set(0.0);
   }
 
-  // Compatibility (if anything still calls these)
+  // Compatibility methods
   public void flipIn() {
     moveToInPosition();
   }
@@ -99,9 +98,19 @@ public class IntakeFlipperSubsystem extends SubsystemBase {
     return encoder.getPosition() * 360.0;
   }
 
+  public boolean isNearInPosition() {
+    return Math.abs(getPosition() - IntakeFlipperConstants.kInPosition) < 0.03;
+  }
+
+  public boolean isNearOutPosition() {
+    return Math.abs(getPosition() - IntakeFlipperConstants.kOutPosition) < 0.03;
+  }
+
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Intake Flipper Pos (output rotations)", encoder.getPosition());
     SmartDashboard.putNumber("Intake Flipper Vel (output rps)", encoder.getVelocity());
+    SmartDashboard.putBoolean("Intake Flipper Near In", isNearInPosition());
+    SmartDashboard.putBoolean("Intake Flipper Near Out", isNearOutPosition());
   }
 }

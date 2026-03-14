@@ -265,8 +265,13 @@ public final class Constants {
         public static final double kStage2GearRatio = 5.0;
         public static final double kTotalGearRatio = kStage1GearRatio * kStage2GearRatio;
 
-        public static final double kInPosition = 0.59762167930603;
-        public static final double kOutPosition = -0.035714279860258;
+        // IMPORTANT:
+        // Encoder is zeroed when the flipper is physically in.
+        public static final double kInPosition = 0;
+
+        // Tune this after zeroing if needed.
+        // Start with your old distance between in and out.
+        public static final double kOutPosition = -0.60952627658844;
 
         public static final double kP = 1.250;
         public static final double kI = 0.0;
