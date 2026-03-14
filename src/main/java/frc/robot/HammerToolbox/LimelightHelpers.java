@@ -1,4 +1,4 @@
-//LimelightHelpers v1.14 (REQUIRES LLOS 2026.0 OR LATER)
+//LimelightHelpers v1.14 (Requires LLOS 2026.0 or later)
 
 package frc.robot.HammerToolbox;
 
