@@ -249,8 +249,9 @@ public final class Constants {
 
         public static final double kGearRatio = 4.0;
 
-        public static final double kInSpeed = 0.85;
-        public static final double kOutSpeed = -0.85;
+        public static final double kInSpeed = 1
+;
+        public static final double kOutSpeed = -1;
     }
 
     /* ================= INTAKE FLIPPER ================= */

@@ -183,13 +183,13 @@ public class DriveSubsystem extends SubsystemBase {
 
         SmartDashboard.putBoolean("Is Disabled", DriverStation.isDisabled());
 
-        if (DriverStation.isDisabled()) {
-            frontLeft.resetEncoders();
-            frontRight.resetEncoders();
-            rearLeft.resetEncoders();
-            rearRight.resetEncoders();
-            SmartDashboard.putString("Encoder Reset", "Resetting at " + Timer.getFPGATimestamp());
-        }
+        // if (DriverStation.isDisabled()) {
+        //     frontLeft.resetEncoders();
+        //     frontRight.resetEncoders();
+        //     rearLeft.resetEncoders();
+        //     rearRight.resetEncoders();
+        //     SmartDashboard.putString("Encoder Reset", "Resetting at " + Timer.getFPGATimestamp());
+        // }
 
         SmartDashboard.putNumber("FL Offset Check", frontLeft.getAbsoluteHeading() + frontLeft.angleZero);
         SmartDashboard.putNumber("FR Offset Check", frontRight.getAbsoluteHeading() + frontRight.angleZero);
@@ -381,7 +381,7 @@ public void drive(double xSpeed, double ySpeed, double rot, boolean isTurbo, boo
         odometry.update(getGyroRotation(), swervePosition);
         poseEstimator.update(getGyroRotation(), swervePosition);
 
-        addLimelightVisionMeasurement();
+        //addLimelightVisionMeasurement();
 
         field.setRobotPose(poseEstimator.getEstimatedPosition());
     }

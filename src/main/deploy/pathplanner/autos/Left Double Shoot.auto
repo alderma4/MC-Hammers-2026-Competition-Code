@@ -55,7 +55,7 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 6.0
+                  "waitTime": 5.0
                 }
               },
               {
@@ -72,15 +72,28 @@
           "data": {
             "commands": [
               {
-                "type": "path",
-                "data": {
-                  "pathName": "Left Shoot to Mid"
-                }
-              },
-              {
                 "type": "named",
                 "data": {
                   "name": "FlipIntakeOut"
+                }
+              },
+              {
+                "type": "race",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Left Shoot to Mid"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "AutonIntake"
+                      }
+                    }
+                  ]
                 }
               }
             ]

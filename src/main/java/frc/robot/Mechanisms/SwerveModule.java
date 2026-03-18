@@ -125,7 +125,7 @@ public class SwerveModule {
 	    // turnEncoder.setPosition(tEposition - angleZero);
 		var tEpositionRotation = absoluteEncoder.getAbsolutePosition().getValueAsDouble(); // Rotations (0 to 1)
    		var tEpositionRadians = tEpositionRotation * (2 * Math.PI); // Convert to radians
-    	var angleZeroRadians = Math.toRadians(angleZero); // Convert angleZero from degrees to radians
+    	var angleZeroRadians = angleZero * (2 * Math.PI); // Convert angleZero from degrees to radians
     	turnEncoder.setPosition(tEpositionRadians - angleZeroRadians);
 
 		SmartDashboard.putNumber(this.moduleName + " Offset", angleZero);

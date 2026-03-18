@@ -15,7 +15,7 @@ public final class PreloadShoot {
 
   // --- timings (tune) ---
   private static final double kSpinupTimeSec = 1.0;
-  private static final double kFeedTimeSec   = 2.0;
+  private static final double kFeedTimeSec   = 3.0;
 
   /** Uses the currently selected teleop preset (D-pad). */
   public static Command create(ShooterSubsystem shooter,
