@@ -5,22 +5,15 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Center Backup"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "PreloadShootClose"
-                }
-              }
-            ]
+            "pathName": "Center Reverse"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "PreloadShootClose"
           }
         }
       ]

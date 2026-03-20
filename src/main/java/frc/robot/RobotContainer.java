@@ -28,6 +28,8 @@ import frc.robot.Constants.SpindexerConstants;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PreloadShoot;
 import frc.robot.commands.LLDriveToTarget;
+import frc.robot.commands.RunShooterLow;
+import frc.robot.commands.RunSpindexerAndFeeder;
 
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -264,8 +266,8 @@ public class RobotContainer {
 
     // ---------------- INTAKE FLIPPER ----------------
     // Stick buttons: set positions
-    leftStickBtn.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToOutPosition(), intakeFlipperSubsystem));
-    rightStickBtn.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToInPosition(), intakeFlipperSubsystem));
+    XboxButton5.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToOutPosition(), intakeFlipperSubsystem));
+    XboxButton6.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToInPosition(), intakeFlipperSubsystem));
 
     // Start/Back: manual override while held
     backBtn.whileTrue(new RunCommand(() -> intakeFlipperSubsystem.manualFlipOut(), intakeFlipperSubsystem));
