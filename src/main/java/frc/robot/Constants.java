@@ -218,8 +218,8 @@ public final class Constants {
         public static final boolean kFeederInverted = false;
         public static final int kCurrentLimit = 30;
 
-        public static final double kForwardSpeed = 0.75;
-        public static final double kReverseSpeed = -0.75;
+        public static final double kForwardSpeed = 1; //alderman changed this 3/24/2026
+        public static final double kReverseSpeed = -1;
     }
 
     /* ================= SPINDEXER ================= */
@@ -235,8 +235,8 @@ public final class Constants {
         public static final double kD = 0.0;
         public static final double kFF = 0.00018;
 
-        public static final double kFeedRPM = 5000.0;
-        public static final double kPreloadFeedRPM = 5000.0;
+        public static final double kFeedRPM = 7000.0;
+        public static final double kPreloadFeedRPM = 7000.0;
     }
 
     /* ================= INTAKE ================= */
