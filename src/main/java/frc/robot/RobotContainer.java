@@ -3,6 +3,7 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +38,7 @@ import frc.robot.subsystems.SpindexerSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.IntakeFlipperSubsystem;
 import frc.robot.subsystems.LimelightSubsystem;
+import frc.robot.subsystems.LEDSubsystem;
 
 public class RobotContainer {
 
@@ -47,9 +49,13 @@ public class RobotContainer {
   public static final SpindexerSubsystem spindexerSubsystem = new SpindexerSubsystem();
   public static final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   public static final IntakeFlipperSubsystem intakeFlipperSubsystem = new IntakeFlipperSubsystem();
+  public static final LEDSubsystem ledSubsystem = new LEDSubsystem();
 
   // Limelight
   public static final LimelightSubsystem limelightSubsystem = new LimelightSubsystem();
+
+  // ---------------- LED STATE TRACKING ----------------
+  private boolean intakeLedActive = false;
 
   // ---------------- JOYSTICKS ----------------
   private final CommandJoystick driveJoystick =
@@ -179,6 +185,15 @@ public class RobotContainer {
     intakeFlipperSubsystem.zeroAtInPosition();
     intakeFlipperSubsystem.moveToInPosition();
 
+    // ---------------- DEFAULT LED UPDATE ----------------
+    ledSubsystem.setDefaultCommand(
+        new RunCommand(
+            () -> {
+              ledSubsystem.setIntakeRunning(intakeLedActive);
+              ledSubsystem.setShooterAtTargetRPM(getShooterAtTargetForLED());
+            },
+            ledSubsystem));
+
     configureBindings();
 
     // ---------------- MANUAL AUTO CHOOSER ----------------
@@ -254,11 +269,11 @@ public class RobotContainer {
     povUp.onTrue(new InstantCommand(() -> shooterSubsystem.setMode(ShooterMode.FAR)));
 
     // ---------------- FEEDER ----------------
-    XboxButton4.whileTrue(new RunCommand(() -> feederSubsystem.runForward(), feederSubsystem));
-    XboxButton4.onFalse(new InstantCommand(() -> feederSubsystem.stop(), feederSubsystem));
-
-    XboxButton2.whileTrue(new RunCommand(() -> feederSubsystem.runReverse(), feederSubsystem));
+    XboxButton2.whileTrue(new RunCommand(() -> feederSubsystem.runForward(), feederSubsystem));
     XboxButton2.onFalse(new InstantCommand(() -> feederSubsystem.stop(), feederSubsystem));
+
+    XboxButton4.whileTrue(new RunCommand(() -> feederSubsystem.runReverse(), feederSubsystem));
+    XboxButton4.onFalse(new InstantCommand(() -> feederSubsystem.stop(), feederSubsystem));
 
     // ---------------- SHOOTER ----------------
     XboxButton3.whileTrue(new RunCommand(() -> shooterSubsystem.runSelectedRPM(), shooterSubsystem));
@@ -272,11 +287,19 @@ public class RobotContainer {
     XboxButton4.onFalse(new InstantCommand(() -> spindexerSubsystem.stop(), spindexerSubsystem));
 
     // ---------------- INTAKE (ROLLER) ----------------
+    XboxButton1.onTrue(new InstantCommand(() -> intakeLedActive = true));
     XboxButton1.whileTrue(new RunCommand(() -> intakeSubsystem.intakeIn(), intakeSubsystem));
-    XboxButton1.onFalse(new InstantCommand(() -> intakeSubsystem.stop(), intakeSubsystem));
+    XboxButton1.onFalse(new InstantCommand(() -> {
+      intakeSubsystem.stop();
+      intakeLedActive = false;
+    }, intakeSubsystem));
 
+    povLeft.onTrue(new InstantCommand(() -> intakeLedActive = true));
     povLeft.whileTrue(new RunCommand(() -> intakeSubsystem.intakeOut(), intakeSubsystem));
-    povLeft.onFalse(new InstantCommand(() -> intakeSubsystem.stop(), intakeSubsystem));
+    povLeft.onFalse(new InstantCommand(() -> {
+      intakeSubsystem.stop();
+      intakeLedActive = false;
+    }, intakeSubsystem));
 
     // ---------------- INTAKE FLIPPER ----------------
     XboxButton5.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToOutPosition(), intakeFlipperSubsystem));
@@ -296,6 +319,36 @@ public class RobotContainer {
             () -> -driveJoystick.getY(),
             () -> -driveJoystick.getX(),
             () -> -turnJoystick.getX()));
+  }
+
+  /**
+   * Tries common shooter "at speed" method names without forcing you to rename your subsystem.
+   * If none of these methods exist yet, LEDs will stay red until you send me ShooterSubsystem.java
+   * and I can wire the exact method in.
+   */
+  private boolean getShooterAtTargetForLED() {
+    String[] methodNames = {
+        "atTargetRPM",
+        "isAtTargetRPM",
+        "atSpeed",
+        "isAtSpeed",
+        "shooterAtTargetRPM",
+        "isShooterAtTargetRPM"
+    };
+
+    for (String methodName : methodNames) {
+      try {
+        Method method = shooterSubsystem.getClass().getMethod(methodName);
+        Object result = method.invoke(shooterSubsystem);
+        if (result instanceof Boolean) {
+          return (Boolean) result;
+        }
+      } catch (Exception e) {
+        // Try next method name
+      }
+    }
+
+    return false;
   }
 
   public Command getAutonomousCommand() {

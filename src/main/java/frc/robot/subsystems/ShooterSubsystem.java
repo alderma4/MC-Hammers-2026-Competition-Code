@@ -20,14 +20,13 @@ import frc.robot.Constants.ShooterConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-  // ✅ 3-distance preset selector
   public enum ShooterMode {
     CLOSE,
     MEDIUM,
     FAR
   }
 
-  private ShooterMode mode = ShooterMode.MEDIUM; // default
+  private ShooterMode mode = ShooterMode.MEDIUM;
 
   private final SparkMax shooterLeft =
       new SparkMax(ShooterConstants.kShooterLeftCanId, MotorType.kBrushless);
@@ -48,7 +47,7 @@ public class ShooterSubsystem extends SubsystemBase {
         .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(ShooterConstants.kCurrentLimit);
 
-    leftCfg.encoder.velocityConversionFactor(1.0); // keep RPM
+    leftCfg.encoder.velocityConversionFactor(1.0);
 
     leftCfg.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -65,7 +64,7 @@ public class ShooterSubsystem extends SubsystemBase {
         .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(ShooterConstants.kCurrentLimit);
 
-    rightCfg.encoder.velocityConversionFactor(1.0); // keep RPM
+    rightCfg.encoder.velocityConversionFactor(1.0);
 
     rightCfg.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -89,6 +88,8 @@ public class ShooterSubsystem extends SubsystemBase {
   public void periodic() {
     SmartDashboard.putNumber("Shooter Left RPM", leftEncoder.getVelocity());
     SmartDashboard.putNumber("Shooter Right RPM", rightEncoder.getVelocity());
+    SmartDashboard.putNumber("Shooter Average RPM", getAverageRPM());
+    SmartDashboard.putBoolean("Shooter At Target RPM", atTargetRPM());
     SmartDashboard.putString("Shooter Mode", mode.name());
     SmartDashboard.putNumber("Shooter Target RPM", getSelectedRPM());
   }
@@ -115,17 +116,40 @@ public class ShooterSubsystem extends SubsystemBase {
     }
   }
 
-  public void runAtRPM(double rpm) {
-    leftPID.setReference(rpm, ControlType.kVelocity);
-    rightPID.setReference(rpm, ControlType.kVelocity);
+  public double getTargetRPM() {
+    return getSelectedRPM();
   }
 
-  // ✅ Run whatever preset is currently selected
+  public double getLeftRPM() {
+    return leftEncoder.getVelocity();
+  }
+
+  public double getRightRPM() {
+    return rightEncoder.getVelocity();
+  }
+
+  public double getAverageRPM() {
+    return (Math.abs(leftEncoder.getVelocity()) + Math.abs(rightEncoder.getVelocity())) / 2.0;
+  }
+
+  public boolean atTargetRPM() {
+    return Math.abs(getAverageRPM() - getSelectedRPM()) <= 75.0;
+  }
+
+  public boolean isAtTargetRPM() {
+    return atTargetRPM();
+  }
+
+  public void runAtRPM(double rpm) {
+    // Negative target because the shooter is currently spinning backwards with positive RPM commands
+    leftPID.setReference(-rpm, ControlType.kVelocity);
+    rightPID.setReference(-rpm, ControlType.kVelocity);
+  }
+
   public void runSelectedRPM() {
     runAtRPM(getSelectedRPM());
   }
 
-  // Kept for compatibility with older code
   public void runAtTargetRPM() {
     runSelectedRPM();
   }
