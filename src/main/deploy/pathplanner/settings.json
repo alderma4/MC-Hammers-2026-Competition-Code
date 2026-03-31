@@ -7,11 +7,7 @@
     "Left",
     "Right"
   ],
-  "autoFolders": [
-    "2025",
-    "Blue 2026",
-    "Red 2026"
-  ],
+  "autoFolders": [],
   "defaultMaxVel": 4.6,
   "defaultMaxAccel": 3.0,
   "defaultMaxAngVel": 540.0,

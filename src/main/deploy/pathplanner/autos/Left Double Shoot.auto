@@ -140,6 +140,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Red 2026",
+  "folder": null,
   "choreoAuto": false
 }

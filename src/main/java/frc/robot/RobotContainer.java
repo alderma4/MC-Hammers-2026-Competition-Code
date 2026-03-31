@@ -4,6 +4,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import java.util.Map;
+import java.util.Set;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -28,9 +29,6 @@ import frc.robot.Constants.SpindexerConstants;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PreloadShoot;
 import frc.robot.commands.LLDriveToTarget;
-import frc.robot.commands.RunShooterLow;
-import frc.robot.commands.RunSpindexerAndFeeder;
-
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.ShooterSubsystem.ShooterMode;
@@ -47,7 +45,6 @@ public class RobotContainer {
   public static final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   public static final FeederSubsystem feederSubsystem = new FeederSubsystem();
   public static final SpindexerSubsystem spindexerSubsystem = new SpindexerSubsystem();
-
   public static final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   public static final IntakeFlipperSubsystem intakeFlipperSubsystem = new IntakeFlipperSubsystem();
 
@@ -61,7 +58,7 @@ public class RobotContainer {
   private final CommandJoystick turnJoystick =
       new CommandJoystick(OperatorConstants.kTurnJoystickPort);
 
-  private final Joystick Leftjoy  = new Joystick(OperatorConstants.kDriveJoystickPort);
+  private final Joystick Leftjoy = new Joystick(OperatorConstants.kDriveJoystickPort);
   private final Joystick Rightjoy = new Joystick(OperatorConstants.kTurnJoystickPort);
 
   // ---------------- XBOX CONTROLLER ----------------
@@ -70,28 +67,28 @@ public class RobotContainer {
   private final CommandXboxController ccontroller = new CommandXboxController(Constants.XBOXCONTROLLER_ID);
 
   // Face buttons
-  Trigger XboxButton1 = ccontroller.button(1);  // A
-  Trigger XboxButton2 = ccontroller.button(2);  // B
-  Trigger XboxButton3 = ccontroller.button(3);  // X
-  Trigger XboxButton4 = ccontroller.button(4);  // Y
+  Trigger XboxButton1 = ccontroller.button(1); // A
+  Trigger XboxButton2 = ccontroller.button(2); // B
+  Trigger XboxButton3 = ccontroller.button(3); // X
+  Trigger XboxButton4 = ccontroller.button(4); // Y
 
   // Bumpers
-  Trigger XboxButton5 = ccontroller.button(5);  // LB
-  Trigger XboxButton6 = ccontroller.button(6);  // RB
+  Trigger XboxButton5 = ccontroller.button(5); // LB
+  Trigger XboxButton6 = ccontroller.button(6); // RB
 
   // Stick buttons
-  Trigger leftStickBtn  = ccontroller.leftStick();
+  Trigger leftStickBtn = ccontroller.leftStick();
   Trigger rightStickBtn = ccontroller.rightStick();
 
   // Start / Back
   Trigger startBtn = ccontroller.start();
-  Trigger backBtn  = ccontroller.back();
+  Trigger backBtn = ccontroller.back();
 
   // D-Pad (POV)
-  Trigger povUp    = ccontroller.povUp();
+  Trigger povUp = ccontroller.povUp();
   Trigger povRight = ccontroller.povRight();
-  Trigger povDown  = ccontroller.povDown();
-  Trigger povLeft  = ccontroller.povLeft();
+  Trigger povDown = ccontroller.povDown();
+  Trigger povLeft = ccontroller.povLeft();
 
   // ---------------- OTHER BUTTONS ----------------
   public JoystickButton button12 = new JoystickButton(Leftjoy, Constants.BUTTON_12_ID);
@@ -100,7 +97,7 @@ public class RobotContainer {
   // Flight stick trigger (Left joystick button 1)
   public JoystickButton driveTrigger = new JoystickButton(Leftjoy, Constants.BUTTON_1_ID);
 
-  // (Optional) keep this if you were using it before
+  // Keep this if you were using it before
   public JoystickButton lTrigger = new JoystickButton(Leftjoy, Constants.BUTTON_1_ID);
 
   // ---------------- AUTO ----------------
@@ -128,48 +125,41 @@ public class RobotContainer {
         "FlipIntakeOut",
         Commands.runOnce(
             () -> intakeFlipperSubsystem.moveToOutPosition(),
-            intakeFlipperSubsystem
-        )
-    );
+            intakeFlipperSubsystem));
 
     // Flip intake in once
     NamedCommands.registerCommand(
         "FlipIntakeIn",
         Commands.runOnce(
             () -> intakeFlipperSubsystem.moveToInPosition(),
-            intakeFlipperSubsystem
-        )
-    );
+            intakeFlipperSubsystem));
 
     // Run intake continuously until timeout
     NamedCommands.registerCommand(
         "AutonIntake",
         Commands.run(
             () -> intakeSubsystem.intakeIn(),
-            intakeSubsystem
-        ).withTimeout(5.0)
-         .finallyDo(interrupted -> intakeSubsystem.stop())
-    );
+            intakeSubsystem)
+        .withTimeout(5.0)
+        .finallyDo(interrupted -> intakeSubsystem.stop()));
 
     // Timed intake command
     NamedCommands.registerCommand(
         "AutonIntake2Sec",
         Commands.run(
             () -> intakeSubsystem.intakeIn(),
-            intakeSubsystem
-        ).withTimeout(2.0)
-         .finallyDo(interrupted -> intakeSubsystem.stop())
-    );
+            intakeSubsystem)
+        .withTimeout(2.0)
+        .finallyDo(interrupted -> intakeSubsystem.stop()));
 
     // Intake out / spit out
     NamedCommands.registerCommand(
         "AutonIntakeOut",
         Commands.run(
             () -> intakeSubsystem.intakeOut(),
-            intakeSubsystem
-        ).withTimeout(1.0)
-         .finallyDo(interrupted -> intakeSubsystem.stop())
-    );
+            intakeSubsystem)
+        .withTimeout(1.0)
+        .finallyDo(interrupted -> intakeSubsystem.stop()));
 
     // Flip intake out, then intake for 2 seconds
     NamedCommands.registerCommand(
@@ -177,26 +167,36 @@ public class RobotContainer {
         Commands.sequence(
             Commands.runOnce(
                 () -> intakeFlipperSubsystem.moveToOutPosition(),
-                intakeFlipperSubsystem
-            ),
+                intakeFlipperSubsystem),
             Commands.waitSeconds(0.25),
             Commands.run(
                 () -> intakeSubsystem.intakeIn(),
-                intakeSubsystem
-            ).withTimeout(2.0)
-             .finallyDo(interrupted -> intakeSubsystem.stop())
-        )
-    );
+                intakeSubsystem)
+            .withTimeout(2.0)
+            .finallyDo(interrupted -> intakeSubsystem.stop())));
 
-    // IMPORTANT:
     // Assume the flipper is physically fully IN when robot starts up.
     intakeFlipperSubsystem.zeroAtInPosition();
     intakeFlipperSubsystem.moveToInPosition();
 
     configureBindings();
 
-    // Build auto chooser from PathPlanner / AutoBuilder
-    autoChooser = AutoBuilder.buildAutoChooser();
+    // ---------------- MANUAL AUTO CHOOSER ----------------
+    // These are loaded lazily so robot code can still boot cleanly.
+    autoChooser = new SendableChooser<>();
+
+    autoChooser.setDefaultOption(
+        "Center Single Shoot",
+        createLazyAuto("Center Single Shoot"));
+
+    autoChooser.addOption(
+        "Left Double Shoot",
+        createLazyAuto("Left Double Shoot"));
+
+    autoChooser.addOption(
+        "Right Double Shoot",
+        createLazyAuto("Right Double Shoot"));
+
     Shuffleboard.getTab("Driver").add("Auto Chooser", autoChooser);
     SmartDashboard.putData("Auto Choices", autoChooser);
 
@@ -217,8 +217,22 @@ public class RobotContainer {
         .withSize(6, 4)
         .withProperties(Map.of(
             "Robot width", 0.9,
-            "Robot length", 0.9
-        ));
+            "Robot length", 0.9));
+  }
+
+  private Command createLazyAuto(String autoName) {
+    return Commands.defer(
+        () -> {
+          try {
+            System.out.println("Loading auto: " + autoName);
+            return AutoBuilder.buildAuto(autoName);
+          } catch (Exception e) {
+            System.out.println("FAILED TO LOAD AUTO: " + autoName);
+            e.printStackTrace();
+            return Commands.none();
+          }
+        },
+        Set.of());
   }
 
   private void configureBindings() {
@@ -265,7 +279,6 @@ public class RobotContainer {
     povLeft.onFalse(new InstantCommand(() -> intakeSubsystem.stop(), intakeSubsystem));
 
     // ---------------- INTAKE FLIPPER ----------------
-    // Stick buttons: set positions
     XboxButton5.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToOutPosition(), intakeFlipperSubsystem));
     XboxButton6.onTrue(new InstantCommand(() -> intakeFlipperSubsystem.moveToInPosition(), intakeFlipperSubsystem));
 
@@ -282,12 +295,11 @@ public class RobotContainer {
             driveSubsystem,
             () -> -driveJoystick.getY(),
             () -> -driveJoystick.getX(),
-            () -> -turnJoystick.getX()
-        )
-    );
+            () -> -turnJoystick.getX()));
   }
 
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected();
+    Command selected = autoChooser.getSelected();
+    return selected != null ? selected : Commands.none();
   }
 }

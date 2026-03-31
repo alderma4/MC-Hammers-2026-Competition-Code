@@ -1,9 +1,8 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.LimelightSubsystem;
 
@@ -12,105 +11,187 @@ public class LLDriveToTarget extends Command {
   private final DriveSubsystem drive;
   private final LimelightSubsystem limelight;
 
-  // TURN: tx -> 0
-  // Slight D helps keep it stable at higher speeds
-  private final PIDController turnPid = new PIDController(0.016, 0.0, 0.001);
+  private static final int TAG_10 = 10;
+  private static final int TAG_26 = 26;
 
-  // DRIVE: ta -> setpoint
-  // Higher P = more aggressive = faster approach
-  private final PIDController drivePid = new PIDController(1.1, 0.0, 0.0);
+  // -------------------------
+  // GOALS
+  // -------------------------
+  private static final double TARGET_DISTANCE_METERS = 0.9144;
 
-  // Bigger = stop closer, smaller = stop farther
-  private static final double kTargetAreaSetpoint = 4.0;
+  // These are the shot-angle targets.
+  // Start at 0.0. If the robot still points left/right of the hub center,
+  // tune these separately.
+  private static final double DESIRED_TX_TAG_10 = 0.0;
+  private static final double DESIRED_TX_TAG_26 = 0.0;
 
-  // Ignore tiny tx noise
-  private static final double kTxDeadbandDeg = 1.0;
+  // This is for lining up the robot centerline with the hub opening.
+  // Start at 0.0, then tune if needed.
+  private static final double DESIRED_LATERAL_OFFSET_METERS = 0.0;
 
-  // If target disappears briefly, keep driving smoothly
-  private static final double kTargetGraceSec = 0.12;
+  // -------------------------
+  // TUNING
+  // -------------------------
+  private static final double kP_TURN_FAR = 0.008;
+  private static final double kP_TURN_NEAR = 0.012;
 
-  // ✅ FASTER caps
-  private static final double kMaxDrive = 0.90;
-  private static final double kMaxTurn  = 0.85;
+  private static final double kP_STRAFE_FAR = 0.25;
+  private static final double kP_STRAFE_NEAR = 0.35;
 
-  // ✅ Snappier smoothing (higher = faster response)
-  private static final double kAlpha = 0.30;
+  private static final double kP_FORWARD_FAR = 0.30;
+  private static final double kP_FORWARD_NEAR = 0.45;
 
-  // --- State ---
-  private double lastTx = 0.0;
-  private double lastTa = 0.0;
-  private double lastSeenTime = -999.0;
+  private static final double MAX_TURN_FAR = 0.08;
+  private static final double MAX_TURN_NEAR = 0.11;
 
-  private double lastRotCmd = 0.0;
-  private double lastFwdCmd = 0.0;
+  private static final double MAX_STRAFE_FAR = 0.07;
+  private static final double MAX_STRAFE_NEAR = 0.10;
+
+  private static final double MAX_FORWARD_FAR = 0.10;
+  private static final double MAX_FORWARD_NEAR = 0.12;
+
+  private static final double TX_TOLERANCE_DEG = 0.7;
+  private static final double STRAFE_TOLERANCE_M = 0.06;
+  private static final double DIST_TOLERANCE_M = 0.05;
+
+  // Inside this distance, tighten the controls
+  private static final double NEAR_DISTANCE_THRESHOLD_M = 1.30;
+
+  private int activePreferredTag = TAG_10;
 
   public LLDriveToTarget(DriveSubsystem drive, LimelightSubsystem limelight) {
     this.drive = drive;
     this.limelight = limelight;
-
-    turnPid.setTolerance(1.0);
-    drivePid.setTolerance(0.25);
-
     addRequirements(drive);
   }
 
   @Override
   public void initialize() {
-    turnPid.reset();
-    drivePid.reset();
-
-    lastRotCmd = 0.0;
-    lastFwdCmd = 0.0;
-
-    lastSeenTime = -999.0;
+    activePreferredTag = TAG_10;
+    limelight.setPriorityTag(activePreferredTag);
+    SmartDashboard.putString("LL Align Status", "Started");
   }
 
   @Override
   public void execute() {
-    double now = Timer.getFPGATimestamp();
+    int seenTag = limelight.getTagID();
 
-    if (limelight.hasTarget()) {
-      lastTx = limelight.getTX();
-      lastTa = limelight.getTA();
-      lastSeenTime = now;
+    if (seenTag == TAG_10) {
+      activePreferredTag = TAG_10;
+      limelight.setPriorityTag(TAG_10);
+    } else if (seenTag == TAG_26) {
+      activePreferredTag = TAG_26;
+      limelight.setPriorityTag(TAG_26);
     }
 
-    boolean recentlySeen = (now - lastSeenTime) <= kTargetGraceSec;
-    if (!recentlySeen) {
-      drive.robotCentricDrive(0.0, 0.0, 0.0);
-      lastRotCmd = 0.0;
-      lastFwdCmd = 0.0;
+    if (!limelight.hasTarget()) {
+      stop();
+      SmartDashboard.putString("LL Align Status", "No target");
       return;
     }
 
-    double tx = lastTx;
-    double ta = lastTa;
+    double tx = limelight.getTX();
+    double distance = limelight.getForwardDistanceMeters();
+    double lateral = limelight.getRightOffsetMeters();
 
-    if (Math.abs(tx) < kTxDeadbandDeg) tx = 0.0;
+    if (Double.isNaN(distance) || Double.isNaN(lateral)) {
+      stop();
+      SmartDashboard.putString("LL Align Status", "Bad LL data");
+      return;
+    }
 
-    // Turn command
-    double rot = turnPid.calculate(tx, 0.0);
-    rot = clamp(rot, -kMaxTurn, kMaxTurn);
-    if (turnPid.atSetpoint()) rot = 0.0;
+    double desiredTx =
+        (activePreferredTag == TAG_26) ? DESIRED_TX_TAG_26 : DESIRED_TX_TAG_10;
 
-    // Forward command
-    double forward = drivePid.calculate(ta, kTargetAreaSetpoint);
-    forward = clamp(forward, -kMaxDrive, kMaxDrive);
-    if (drivePid.atSetpoint()) forward = 0.0;
+    double turnError = tx - desiredTx;
+    double strafeError = lateral - DESIRED_LATERAL_OFFSET_METERS;
+    double distanceError = distance - TARGET_DISTANCE_METERS;
 
-    // Smooth (still smooth, but faster ramp)
-    rot = lowPass(lastRotCmd, rot, kAlpha);
-    forward = lowPass(lastFwdCmd, forward, kAlpha);
+    boolean nearMode = distance < NEAR_DISTANCE_THRESHOLD_M;
 
-    lastRotCmd = rot;
-    lastFwdCmd = forward;
+    double kPTurn = nearMode ? kP_TURN_NEAR : kP_TURN_FAR;
+    double kPStrafe = nearMode ? kP_STRAFE_NEAR : kP_STRAFE_FAR;
+    double kPForward = nearMode ? kP_FORWARD_NEAR : kP_FORWARD_FAR;
 
-    drive.robotCentricDrive(forward, 0.0, rot);
+    double maxTurn = nearMode ? MAX_TURN_NEAR : MAX_TURN_FAR;
+    double maxStrafe = nearMode ? MAX_STRAFE_NEAR : MAX_STRAFE_FAR;
+    double maxForward = nearMode ? MAX_FORWARD_NEAR : MAX_FORWARD_FAR;
+
+    // -------------------------
+    // TURN
+    // -------------------------
+    double turnCmd = -kPTurn * turnError;
+    turnCmd = MathUtil.clamp(turnCmd, -maxTurn, maxTurn);
+
+    if (Math.abs(turnError) < 3.0) {
+      turnCmd *= 0.5;
+    }
+    if (Math.abs(turnError) < TX_TOLERANCE_DEG) {
+      turnCmd = 0.0;
+    }
+
+    // -------------------------
+    // STRAFE
+    // -------------------------
+    double strafeCmd = -kPStrafe * strafeError;
+    strafeCmd = MathUtil.clamp(strafeCmd, -maxStrafe, maxStrafe);
+
+    if (Math.abs(strafeError) < 0.20) {
+      strafeCmd *= 0.5;
+    }
+    if (Math.abs(strafeError) < STRAFE_TOLERANCE_M) {
+      strafeCmd = 0.0;
+    }
+
+    // -------------------------
+    // FORWARD
+    // -------------------------
+    double forwardCmd = kPForward * distanceError;
+    forwardCmd = MathUtil.clamp(forwardCmd, -maxForward, maxForward);
+
+    if (Math.abs(distanceError) < 0.25) {
+      forwardCmd *= 0.4;
+    }
+    if (Math.abs(distanceError) < DIST_TOLERANCE_M) {
+      forwardCmd = 0.0;
+    }
+
+    // Do not keep driving in if angle/centerline are still off.
+    if (nearMode) {
+      if (Math.abs(turnError) > 1.5 || Math.abs(strafeError) > 0.08) {
+        forwardCmd = 0.0;
+      }
+    } else {
+      if (Math.abs(turnError) > 2.5 || Math.abs(strafeError) > 0.15) {
+        forwardCmd = 0.0;
+      }
+    }
+
+    drive.robotCentricDrive(forwardCmd, strafeCmd, turnCmd);
+
+    SmartDashboard.putString("LL Align Status", nearMode ? "Near Align" : "Far Align");
+    SmartDashboard.putNumber("LL Seen Tag", seenTag);
+    SmartDashboard.putNumber("LL Preferred Tag", activePreferredTag);
+
+    SmartDashboard.putNumber("LL tx", tx);
+    SmartDashboard.putNumber("LL Desired tx", desiredTx);
+    SmartDashboard.putNumber("LL Turn Error", turnError);
+    SmartDashboard.putNumber("LL Turn Cmd", turnCmd);
+
+    SmartDashboard.putNumber("LL Lateral", lateral);
+    SmartDashboard.putNumber("LL Strafe Error", strafeError);
+    SmartDashboard.putNumber("LL Strafe Cmd", strafeCmd);
+
+    SmartDashboard.putNumber("LL Distance M", distance);
+    SmartDashboard.putNumber("LL Distance Error", distanceError);
+    SmartDashboard.putNumber("LL Forward Cmd", forwardCmd);
   }
 
   @Override
   public void end(boolean interrupted) {
-    drive.robotCentricDrive(0.0, 0.0, 0.0);
+    stop();
+    limelight.clearPriorityTag();
+    SmartDashboard.putString("LL Align Status", interrupted ? "Interrupted" : "Ended");
   }
 
   @Override
@@ -118,11 +199,7 @@ public class LLDriveToTarget extends Command {
     return false;
   }
 
-  private static double clamp(double val, double min, double max) {
-    return Math.max(min, Math.min(max, val));
-  }
-
-  private static double lowPass(double prev, double target, double alpha) {
-    return prev + alpha * (target - prev);
+  private void stop() {
+    drive.robotCentricDrive(0.0, 0.0, 0.0);
   }
 }
