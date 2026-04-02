@@ -30,14 +30,6 @@ public final class Constants {
         public static final double kwheelCircumference = Units.inchesToMeters(4) * Math.PI;
 
 
-        public static final double kelevatorCircumference = Units.inchesToMeters(2.16) * Math.PI;
-        public static final double kelevatorGearRatio = 15d;
-        public static final double kelevatorLevel4 = 150;
-        public static final double kelevatorLevel3 = 75;
-        public static final double kelevatorLevel2 = 31;
-        public static final double kelevatorLevel1 = 0;
-
-
         public static final double kflipperIn = .5;
         public static final double kflipperOut = 0;
 
@@ -253,9 +245,9 @@ public final class Constants {
         public static final int kCurrentLimit = 40;
 
 
-        public static final double kCloseRPM = 2760.0;
-        public static final double kMediumRPM = 3250.0;
-        public static final double kFarRPM = 3750.0;
+        public static final double kCloseRPM = 2500.0;
+        public static final double kMediumRPM = 2900.0;
+        public static final double kFarRPM = 2950.0;
 
 
         public static final double kP = 0.0003;

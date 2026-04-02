@@ -12,7 +12,7 @@ public class LEDSubsystem extends SubsystemBase {
     private boolean shooterAtTargetRPM = false;
 
     public LEDSubsystem() {
-        blinkin = new Spark(0); // PWM port 0 (where Blinkin is plugged in)
+        blinkin = new Spark(0); // PWM port 0
     }
 
     public void setIntakeRunning(boolean running) {
@@ -24,19 +24,18 @@ public class LEDSubsystem extends SubsystemBase {
     }
 
     @Override
-    public void periodic() {
-
-        if (DriverStation.isDisabled()) {
-            blinkin.set(.53); // red + white animation (strobe)
-        }
-        else if (shooterAtTargetRPM) {
-            blinkin.set(0.77); // green
-        }
-        else if (intakeRunning) {
-            blinkin.set(0.67); // yellow/gold
-        }
-        else {
-            blinkin.set(0.61); // red
-        }
+public void periodic() {
+    if (DriverStation.isDisabled()) {
+        blinkin.set(0.61); // solid red
+        return;
     }
+
+    if (shooterAtTargetRPM) {
+        blinkin.set(0.77); // green
+    } else if (intakeRunning) {
+        blinkin.set(0.83); // light blue
+    } else {
+        blinkin.set(0.61); // red
+    }
+}
 }
