@@ -247,7 +247,7 @@ public final class Constants {
 
         public static final double kCloseRPM = 2500.0;
         public static final double kMediumRPM = 2900.0;
-        public static final double kFarRPM = 2950.0;
+        public static final double kFarRPM = 3150.0;
 
 
         public static final double kP = 0.0003;

@@ -17,7 +17,7 @@ public class LLDriveToTarget extends Command {
   // -------------------------
   // GOALS
   // -------------------------
-  private static final double TARGET_DISTANCE_METERS = 0.9144;
+  private static final double TARGET_DISTANCE_METERS = 1.346;
 
   // These are the shot-angle targets.
   // Start at 0.0. If the robot still points left/right of the hub center,

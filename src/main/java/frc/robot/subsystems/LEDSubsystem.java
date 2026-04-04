@@ -26,7 +26,7 @@ public class LEDSubsystem extends SubsystemBase {
     @Override
 public void periodic() {
     if (DriverStation.isDisabled()) {
-        blinkin.set(0.61); // solid red
+        blinkin.set(0.93); // White
         return;
     }
 
