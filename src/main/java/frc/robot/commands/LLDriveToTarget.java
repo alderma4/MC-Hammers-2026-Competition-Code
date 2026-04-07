@@ -14,47 +14,39 @@ public class LLDriveToTarget extends Command {
   private static final int TAG_10 = 10;
   private static final int TAG_26 = 26;
 
-  // -------------------------
-  // GOALS
-  // -------------------------
-  private static final double TARGET_DISTANCE_METERS = 1.346;
+  // Desired final distance from robot to HUB CENTER
+  private static final double TARGET_DISTANCE_METERS = 0.9144;
 
-  // These are the shot-angle targets.
-  // Start at 0.0. If the robot still points left/right of the hub center,
-  // tune these separately.
-  private static final double DESIRED_TX_TAG_10 = 0.0;
-  private static final double DESIRED_TX_TAG_26 = 0.0;
+  // Forward offset from tag plane to hub center.
+  // Start at 0.0 and tune only if your tag is meaningfully forward/back from the actual hole center.
+  private static final double TAG_TO_HUB_CENTER_FORWARD_METERS = 0.0;
 
-  // This is for lining up the robot centerline with the hub opening.
-  // Start at 0.0, then tune if needed.
-  private static final double DESIRED_LATERAL_OFFSET_METERS = 0.0;
+  // Sideways offset from each tag to the hub center.
+  // Tune this. Start around half the spacing between the two "center" tags on that hub face.
+  private static final double TAG_TO_HUB_CENTER_RIGHT_METERS = 0.28;
 
-  // -------------------------
-  // TUNING
-  // -------------------------
-  private static final double kP_TURN_FAR = 0.008;
-  private static final double kP_TURN_NEAR = 0.012;
+  private static final double kP_TURN_FAR = 0.018;
+  private static final double kP_TURN_NEAR = 0.024;
 
-  private static final double kP_STRAFE_FAR = 0.25;
-  private static final double kP_STRAFE_NEAR = 0.35;
+  private static final double kP_STRAFE_FAR = 0.35;
+  private static final double kP_STRAFE_NEAR = 0.50;
 
   private static final double kP_FORWARD_FAR = 0.30;
-  private static final double kP_FORWARD_NEAR = 0.45;
+  private static final double kP_FORWARD_NEAR = 0.40;
 
-  private static final double MAX_TURN_FAR = 0.08;
-  private static final double MAX_TURN_NEAR = 0.11;
+  private static final double MAX_TURN_FAR = 0.12;
+  private static final double MAX_TURN_NEAR = 0.16;
 
-  private static final double MAX_STRAFE_FAR = 0.07;
-  private static final double MAX_STRAFE_NEAR = 0.10;
+  private static final double MAX_STRAFE_FAR = 0.12;
+  private static final double MAX_STRAFE_NEAR = 0.16;
 
-  private static final double MAX_FORWARD_FAR = 0.10;
-  private static final double MAX_FORWARD_NEAR = 0.12;
+  private static final double MAX_FORWARD_FAR = 0.12;
+  private static final double MAX_FORWARD_NEAR = 0.14;
 
-  private static final double TX_TOLERANCE_DEG = 0.7;
-  private static final double STRAFE_TOLERANCE_M = 0.06;
+  private static final double ANGLE_TOLERANCE_DEG = 2.0;
+  private static final double STRAFE_TOLERANCE_M = 0.04;
   private static final double DIST_TOLERANCE_M = 0.05;
 
-  // Inside this distance, tighten the controls
   private static final double NEAR_DISTANCE_THRESHOLD_M = 1.30;
 
   private int activePreferredTag = TAG_10;
@@ -90,24 +82,38 @@ public class LLDriveToTarget extends Command {
       return;
     }
 
-    double tx = limelight.getTX();
-    double distance = limelight.getForwardDistanceMeters();
-    double lateral = limelight.getRightOffsetMeters();
+    double robotToTagForward = limelight.getForwardDistanceMeters();
+    double robotToTagRight = limelight.getRightOffsetMeters();
 
-    if (Double.isNaN(distance) || Double.isNaN(lateral)) {
+    if (Double.isNaN(robotToTagForward) || Double.isNaN(robotToTagRight)) {
       stop();
       SmartDashboard.putString("LL Align Status", "Bad LL data");
       return;
     }
 
-    double desiredTx =
-        (activePreferredTag == TAG_26) ? DESIRED_TX_TAG_26 : DESIRED_TX_TAG_10;
+    // Estimate hub center relative to robot.
+    // Tag 10 and 26 are on opposite sides of their face, so the sideways offset mirrors.
+    double hubForward = robotToTagForward + TAG_TO_HUB_CENTER_FORWARD_METERS;
+    double hubRight;
 
-    double turnError = tx - desiredTx;
-    double strafeError = lateral - DESIRED_LATERAL_OFFSET_METERS;
-    double distanceError = distance - TARGET_DISTANCE_METERS;
+    if (activePreferredTag == TAG_10) {
+      hubRight = robotToTagRight - TAG_TO_HUB_CENTER_RIGHT_METERS;
+    } else {
+      hubRight = robotToTagRight + TAG_TO_HUB_CENTER_RIGHT_METERS;
+    }
 
-    boolean nearMode = distance < NEAR_DISTANCE_THRESHOLD_M;
+    // Angle from robot forward direction to the hub center
+    double desiredAngleDeg = Math.toDegrees(Math.atan2(hubRight, hubForward));
+    double turnError = desiredAngleDeg;
+
+    // Lateral error is now relative to HUB CENTER, not tag center
+    double strafeError = hubRight;
+
+    // Distance to HUB CENTER
+    double hubDistance = Math.hypot(hubForward, hubRight);
+    double distanceError = hubDistance - TARGET_DISTANCE_METERS;
+
+    boolean nearMode = hubDistance < NEAR_DISTANCE_THRESHOLD_M;
 
     double kPTurn = nearMode ? kP_TURN_NEAR : kP_TURN_FAR;
     double kPStrafe = nearMode ? kP_STRAFE_NEAR : kP_STRAFE_FAR;
@@ -117,52 +123,43 @@ public class LLDriveToTarget extends Command {
     double maxStrafe = nearMode ? MAX_STRAFE_NEAR : MAX_STRAFE_FAR;
     double maxForward = nearMode ? MAX_FORWARD_NEAR : MAX_FORWARD_FAR;
 
-    // -------------------------
-    // TURN
-    // -------------------------
     double turnCmd = -kPTurn * turnError;
     turnCmd = MathUtil.clamp(turnCmd, -maxTurn, maxTurn);
 
-    if (Math.abs(turnError) < 3.0) {
-      turnCmd *= 0.5;
+    if (Math.abs(turnError) < 6.0) {
+      turnCmd *= 0.6;
     }
-    if (Math.abs(turnError) < TX_TOLERANCE_DEG) {
+    if (Math.abs(turnError) < ANGLE_TOLERANCE_DEG) {
       turnCmd = 0.0;
     }
 
-    // -------------------------
-    // STRAFE
-    // -------------------------
     double strafeCmd = -kPStrafe * strafeError;
     strafeCmd = MathUtil.clamp(strafeCmd, -maxStrafe, maxStrafe);
 
-    if (Math.abs(strafeError) < 0.20) {
+    if (Math.abs(strafeError) < 0.12) {
       strafeCmd *= 0.5;
     }
     if (Math.abs(strafeError) < STRAFE_TOLERANCE_M) {
       strafeCmd = 0.0;
     }
 
-    // -------------------------
-    // FORWARD
-    // -------------------------
     double forwardCmd = kPForward * distanceError;
     forwardCmd = MathUtil.clamp(forwardCmd, -maxForward, maxForward);
 
-    if (Math.abs(distanceError) < 0.25) {
-      forwardCmd *= 0.4;
+    if (Math.abs(distanceError) < 0.20) {
+      forwardCmd *= 0.45;
     }
     if (Math.abs(distanceError) < DIST_TOLERANCE_M) {
       forwardCmd = 0.0;
     }
 
-    // Do not keep driving in if angle/centerline are still off.
+    // Prevent pushing in hard while still aimed badly
     if (nearMode) {
-      if (Math.abs(turnError) > 1.5 || Math.abs(strafeError) > 0.08) {
+      if (Math.abs(turnError) > 3.0 || Math.abs(strafeError) > 0.08) {
         forwardCmd = 0.0;
       }
     } else {
-      if (Math.abs(turnError) > 2.5 || Math.abs(strafeError) > 0.15) {
+      if (Math.abs(turnError) > 6.0 || Math.abs(strafeError) > 0.16) {
         forwardCmd = 0.0;
       }
     }
@@ -173,16 +170,19 @@ public class LLDriveToTarget extends Command {
     SmartDashboard.putNumber("LL Seen Tag", seenTag);
     SmartDashboard.putNumber("LL Preferred Tag", activePreferredTag);
 
-    SmartDashboard.putNumber("LL tx", tx);
-    SmartDashboard.putNumber("LL Desired tx", desiredTx);
+    SmartDashboard.putNumber("LL Robot->Tag Forward", robotToTagForward);
+    SmartDashboard.putNumber("LL Robot->Tag Right", robotToTagRight);
+
+    SmartDashboard.putNumber("LL Hub Forward", hubForward);
+    SmartDashboard.putNumber("LL Hub Right", hubRight);
+    SmartDashboard.putNumber("LL Desired Angle Deg", desiredAngleDeg);
     SmartDashboard.putNumber("LL Turn Error", turnError);
     SmartDashboard.putNumber("LL Turn Cmd", turnCmd);
 
-    SmartDashboard.putNumber("LL Lateral", lateral);
     SmartDashboard.putNumber("LL Strafe Error", strafeError);
     SmartDashboard.putNumber("LL Strafe Cmd", strafeCmd);
 
-    SmartDashboard.putNumber("LL Distance M", distance);
+    SmartDashboard.putNumber("LL Hub Distance", hubDistance);
     SmartDashboard.putNumber("LL Distance Error", distanceError);
     SmartDashboard.putNumber("LL Forward Cmd", forwardCmd);
   }

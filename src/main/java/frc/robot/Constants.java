@@ -246,8 +246,8 @@ public final class Constants {
 
 
         public static final double kCloseRPM = 2500.0;
-        public static final double kMediumRPM = 2900.0;
-        public static final double kFarRPM = 3150.0;
+        public static final double kMediumRPM = 3100.0;
+        public static final double kFarRPM = 3300.0;
 
 
         public static final double kP = 0.0003;
@@ -268,8 +268,8 @@ public final class Constants {
         public static final int kCurrentLimit = 30;
 
 
-        public static final double kForwardSpeed = 1; //alderman changed this 3/24/2026
-        public static final double kReverseSpeed = -1;
+        public static final double kForwardSpeed = .5; //alderman changed this 3/24/2026
+        public static final double kReverseSpeed = -.5;
     }
 
 
@@ -326,7 +326,7 @@ public final class Constants {
         public static final int kCurrentLimit = 40;
 
 
-        public static final double kStage1GearRatio = 4.0;
+        public static final double kStage1GearRatio = 5.0;
         public static final double kStage2GearRatio = 5.0;
         public static final double kTotalGearRatio = kStage1GearRatio * kStage2GearRatio;
 
@@ -338,7 +338,7 @@ public final class Constants {
 
         // Tune this after zeroing if needed.
         // Start with your old distance between in and out.
-        public static final double kOutPosition = -0.60952627658844;
+        public static final double kOutPosition = -1.380942225456238;
 
 
         public static final double kP = 1.250;

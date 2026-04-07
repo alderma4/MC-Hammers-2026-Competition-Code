@@ -43,8 +43,8 @@ public class LimelightSubsystem extends SubsystemBase {
   }
 
   /**
-   * Uses rawfiducials for a more trustworthy camera-to-tag distance.
-   * rawfiducials:
+   * Returns distance from ROBOT to the primary target.
+   * Limelight rawfiducials format:
    * [id, txnc, tync, ta, distToCamera, distToRobot, ambiguity, ...]
    */
   public double getForwardDistanceMeters() {
@@ -53,11 +53,11 @@ public class LimelightSubsystem extends SubsystemBase {
     }
 
     double[] raw = getRawFiducials();
-    if (raw.length < 7) {
+    if (raw.length < 6) {
       return Double.NaN;
     }
 
-    return raw[4]; // distToCamera
+    return raw[5]; // distToRobot
   }
 
   public double getForwardDistanceFeet() {
@@ -69,11 +69,8 @@ public class LimelightSubsystem extends SubsystemBase {
   }
 
   /**
-   * Lateral offset from robot to tag using targetpose_robotspace.
-   * This is used for strafing left/right into alignment.
-   *
-   * Start with pose[0]. If strafe goes the wrong way or the number looks wrong,
-   * we can swap to pose[2] or flip the sign after testing.
+   * Horizontal offset from robot center to target in robot space.
+   * Keeping pose[0] because that matches your current testing setup.
    */
   public double getRightOffsetMeters() {
     if (!hasTarget()) {
