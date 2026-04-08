@@ -61,7 +61,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "PreloadShootMedium"
+                  "name": "LeftPreload"
                 }
               }
             ]
@@ -118,7 +118,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "PreloadShootMedium"
+                  "name": "LeftPreload"
                 }
               },
               {

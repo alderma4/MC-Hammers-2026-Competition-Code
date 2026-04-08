@@ -123,6 +123,15 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "PreloadShootFar",
         PreloadShoot.far(shooterSubsystem, feederSubsystem, spindexerSubsystem));
+    NamedCommands.registerCommand(
+      "CenterPreload", 
+      PreloadShoot.centerAuto(shooterSubsystem, feederSubsystem, spindexerSubsystem));
+    NamedCommands.registerCommand(
+      "LeftPreload",
+       PreloadShoot.leftAuto(shooterSubsystem, feederSubsystem, spindexerSubsystem));
+    NamedCommands.registerCommand(
+      "RightPreload",
+       PreloadShoot.rightAuto(shooterSubsystem, feederSubsystem, spindexerSubsystem));
 
     // ---------------- AUTON INTAKE / FLIPPER COMMANDS ----------------
 
@@ -280,11 +289,11 @@ public class RobotContainer {
     XboxButton3.onFalse(new InstantCommand(() -> shooterSubsystem.stopShooter(), shooterSubsystem));
 
     // ---------------- SPINDEXER ----------------
-    XboxButton2.whileTrue(new RunCommand(() -> spindexerSubsystem.runAtRPM(SpindexerConstants.kFeedRPM), spindexerSubsystem));
-    XboxButton2.onFalse(new InstantCommand(() -> spindexerSubsystem.stop(), spindexerSubsystem));
-
-    XboxButton4.whileTrue(new RunCommand(() -> spindexerSubsystem.runReverseRPM(), spindexerSubsystem));
+    XboxButton4.whileTrue(new RunCommand(() -> spindexerSubsystem.runAtRPM(SpindexerConstants.kFeedRPM), spindexerSubsystem));
     XboxButton4.onFalse(new InstantCommand(() -> spindexerSubsystem.stop(), spindexerSubsystem));
+
+    XboxButton2.whileTrue(new RunCommand(() -> spindexerSubsystem.runReverseRPM(), spindexerSubsystem));
+    XboxButton2.onFalse(new InstantCommand(() -> spindexerSubsystem.stop(), spindexerSubsystem));
 
     // ---------------- INTAKE (ROLLER) ----------------
     XboxButton1.onTrue(new InstantCommand(() -> intakeLedActive = true));
