@@ -133,6 +133,14 @@ public class RobotContainer {
       "RightPreload",
        PreloadShoot.rightAuto(shooterSubsystem, feederSubsystem, spindexerSubsystem));
 
+    NamedCommands.registerCommand(
+        "EnableAutoSlowMode",
+        Commands.runOnce(() -> driveSubsystem.setAutoSpeedMultiplier(0.35), driveSubsystem));
+
+    NamedCommands.registerCommand(
+        "DisableAutoSlowMode",
+        Commands.runOnce(() -> driveSubsystem.resetAutoSpeedMultiplier(), driveSubsystem));
+
     // ---------------- AUTON INTAKE / FLIPPER COMMANDS ----------------
 
     // Flip intake out once

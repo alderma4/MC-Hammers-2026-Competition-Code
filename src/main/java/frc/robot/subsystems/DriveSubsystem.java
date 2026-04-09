@@ -50,6 +50,7 @@ public class DriveSubsystem extends SubsystemBase {
     private boolean fieldRelative = true;
     private boolean gyroTurning = false;
     private double targetRotationDegrees;
+    private double autoSpeedMultiplier = 1.0;
 
 
     private final SwerveModule frontLeft;
@@ -216,6 +217,7 @@ public class DriveSubsystem extends SubsystemBase {
 
 
         SmartDashboard.putBoolean("Is Disabled", DriverStation.isDisabled());
+        SmartDashboard.putNumber("Auto Speed Multiplier", autoSpeedMultiplier);
 
 
         // if (DriverStation.isDisabled()) {
@@ -361,8 +363,17 @@ public class DriveSubsystem extends SubsystemBase {
 
 
     public void driveRobotRelative(ChassisSpeeds speeds) {
-        SwerveModuleState[] states = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+        ChassisSpeeds slowedSpeeds = new ChassisSpeeds(
+                speeds.vxMetersPerSecond * autoSpeedMultiplier,
+                speeds.vyMetersPerSecond * autoSpeedMultiplier,
+                speeds.omegaRadiansPerSecond
+        );
 
+        SwerveModuleState[] states = DriveConstants.kDriveKinematics.toSwerveModuleStates(slowedSpeeds);
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(
+                states,
+                ModuleConstants.kMaxModuleSpeedMetersPerSecond);
 
         frontLeft.setDesiredState(states[0]);
         frontRight.setDesiredState(states[1]);
@@ -597,6 +608,21 @@ public void drive(double xSpeed, double ySpeed, double rot, boolean isTurbo, boo
 
     public void setFieldCentric(boolean fieldCentric) {
         fieldRelative = fieldCentric;
+    }
+
+
+    public void setAutoSpeedMultiplier(double multiplier) {
+        autoSpeedMultiplier = Math.max(0.1, Math.min(multiplier, 1.0));
+    }
+
+
+    public void resetAutoSpeedMultiplier() {
+        autoSpeedMultiplier = 1.0;
+    }
+
+
+    public double getAutoSpeedMultiplier() {
+        return autoSpeedMultiplier;
     }
 
 

@@ -201,7 +201,7 @@ public final class Constants {
 
         // Auto-specific preload RPMs
         public static final double kCenterAutoRPM = 2800.0;
-        public static final double kLeftAutoRPM   = 3200.0;
+        public static final double kLeftAutoRPM   = 3300.0;
         public static final double kRightAutoRPM  = 3400.0;
 
         public static final double kP = 0.0003;
