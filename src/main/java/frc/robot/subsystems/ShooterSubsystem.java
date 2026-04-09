@@ -55,6 +55,10 @@ public class ShooterSubsystem extends SubsystemBase {
         .velocityFF(ShooterConstants.kFF)
         .outputRange(-1.0, 1.0);
 
+    // 🔥 THIS IS THE IMPORTANT PART
+    leftCfg.closedLoop.maxMotion
+        .maxAcceleration(1500); // RPM per second (tune this!)
+
     shooterLeft.configure(leftCfg, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     // Right config
@@ -71,6 +75,10 @@ public class ShooterSubsystem extends SubsystemBase {
         .pid(ShooterConstants.kP, ShooterConstants.kI, ShooterConstants.kD)
         .velocityFF(ShooterConstants.kFF)
         .outputRange(-1.0, 1.0);
+
+    // 🔥 THIS TOO
+    rightCfg.closedLoop.maxMotion
+        .maxAcceleration(2000); // RPM per second
 
     shooterRight.configure(rightCfg, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -141,9 +149,9 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public void runAtRPM(double rpm) {
-    // Negative target because the shooter is currently spinning backwards with positive RPM commands
-    leftPID.setReference(-rpm, ControlType.kVelocity);
-    rightPID.setReference(-rpm, ControlType.kVelocity);
+    // 🔥 SWITCHED TO MAX MOTION
+    leftPID.setReference(-rpm, ControlType.kMAXMotionVelocityControl);
+    rightPID.setReference(-rpm, ControlType.kMAXMotionVelocityControl);
   }
 
   public void runSelectedRPM() {
