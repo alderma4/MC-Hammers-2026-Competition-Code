@@ -101,7 +101,7 @@ public class RobotContainer {
   public JoystickButton rightButton11 = new JoystickButton(Rightjoy, Constants.BUTTON_11_ID);
 
   // NEW: left Logitech joystick stick press (button 10)
-  public JoystickButton leftButton10 = new JoystickButton(Leftjoy, 10);
+  public JoystickButton leftButton11 = new JoystickButton(Leftjoy, 11);
 
   // Flight stick trigger (Left joystick button 1)
   public JoystickButton driveTrigger = new JoystickButton(Leftjoy, Constants.BUTTON_1_ID);
@@ -300,8 +300,8 @@ public class RobotContainer {
     XboxButton3.onFalse(new InstantCommand(() -> shooterSubsystem.stopShooter(), shooterSubsystem));
 
     // NEW: left Logitech joystick stick press (button 10) = opposite direction, full power, no ramp
-    leftButton10.whileTrue(new RunCommand(() -> shooterSubsystem.runOppositeFullPower(), shooterSubsystem));
-    leftButton10.onFalse(new InstantCommand(() -> shooterSubsystem.stopShooter(), shooterSubsystem));
+    leftButton11.whileTrue(new RunCommand(() -> shooterSubsystem.runOppositeFullPower(), shooterSubsystem));
+    leftButton11.onFalse(new InstantCommand(() -> shooterSubsystem.stopShooter(), shooterSubsystem));
 
     // ---------------- SPINDEXER ----------------
     XboxButton4.whileTrue(new RunCommand(() -> spindexerSubsystem.runAtRPM(SpindexerConstants.kFeedRPM), spindexerSubsystem));

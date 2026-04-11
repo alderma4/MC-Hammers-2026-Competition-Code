@@ -278,7 +278,7 @@ public final class Constants {
         public static final double kD = 0.0;
 
         public static final double kFlipInSpeed = 0.5;
-        public static final double kFlipOutSpeed = -0.7;
+        public static final double kFlipOutSpeed = -0.5;
     }
 
     private Constants() {}
